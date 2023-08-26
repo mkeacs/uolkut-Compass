@@ -1,13 +1,36 @@
+import React, { useState } from "react";
 import { Form, Link, useNavigate } from "react-router-dom";
+import { auth } from "../../../services/firebaseConfig";
 import styles from "./FormAccount.module.css";
+import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
 
 export const FormAccount = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleFormSubmit = (event: React.SyntheticEvent) => {
+  const [createUserWithEmailAndPassword, user, loading] =
+    useCreateUserWithEmailAndPassword(auth);
+
+  const handleFormSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
-    navigate("details");
+
+    try {
+      await createUserWithEmailAndPassword(email, password);
+
+      navigate("details");
+    } catch (error) {
+      console.error("Erro ao criar conta:", error);
+    }
   };
+
+  if (loading) {
+    return <p>Carregando...</p>;
+  }
+
+  if (user) {
+    return console.log(user);
+  }
 
   return (
     <Form onSubmit={handleFormSubmit} className={styles.formContainer}>
@@ -27,6 +50,7 @@ export const FormAccount = () => {
             type="email"
             id="email"
             placeholder="exemplo@email.com"
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </p>
@@ -47,6 +71,7 @@ export const FormAccount = () => {
             id="password"
             placeholder="********"
             minLength={8}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </p>
